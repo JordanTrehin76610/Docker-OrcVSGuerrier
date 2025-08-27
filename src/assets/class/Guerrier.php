@@ -61,7 +61,18 @@ class Guerrier extends Character
     }
 
     public function getDamage(int $damage) {
-        $this->setHealth(($this->getHealth()) - ($damage - $this->getShieldAbsorbtion()));
+        if (($damage - $this->getShieldAbsorbtion()) <= 0 ) {
+            $this->setHealth($this->getHealth());
+            return 0;
+        } else {
+            $this->setHealth(($this->getHealth()) - ($damage - $this->getShieldAbsorbtion()));
+            return $damage - $this->getShieldAbsorbtion();
+        }
+    }
+
+    public function magicUse() {
+        $soin = rand(100, 500);
+        return $soin;
     }
 }
 

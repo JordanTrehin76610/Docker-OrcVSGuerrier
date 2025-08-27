@@ -1,7 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Geo:ital@0;1&family=Nova+Cut&family=Odibee+Sans&display=swap');
+
+.texte {
+  font-family: "Nova Cut", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
 .cadre {
-    height: 20rem;
+    height: 40rem;
+    background-image: url('../img/terrain.jpg');
+    background-size: cover;
+    background-position: bottom;
 }
 
 .terrain {
-    height: 80%;
+    height: 95%
+}
+
+
+.perso {
+    height: 100%;
+    width: 100%;
+}
+
+.logo {
+    height: 2.5%;
 }
