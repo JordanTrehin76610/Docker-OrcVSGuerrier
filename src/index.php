@@ -72,7 +72,7 @@ function nouvellePartie() {
 
 //CREATION DE PERSO
 function creationGuerrier() {
-    $guerrier = new Guerrier(2000, 500, "Hallebarde", 250, "Bouclier", 200);
+    $guerrier = new Guerrier(2000, 500, "Hallebarde", 250, "Bouclier", 150);
     $_SESSION['guerrier'] = $guerrier;
     $_SESSION['guerrierPV'] = $guerrier->getHealth();
     $_SESSION['guerrierMANA'] = $guerrier->getMana();
@@ -139,9 +139,9 @@ function combat() {
     } else if ($_SESSION['commence'] == "guerrier") { //DEBUT DE L'ATTAQUE DU GUERRIER
 
         $alea = rand(1, 2);
-        if ($alea == 2 && ($_SESSION['guerrier']->getMana() > 100)) {
+        $soigne = $_SESSION['guerrier']->magicUse();
+        if ($alea == 2 && ($_SESSION['guerrier']->getMana() > $soigne)) {
 
-            $soigne = $_SESSION['guerrier']->magicUse();
             $_SESSION['guerrier']->setHealth(($_SESSION['guerrier']->getHealth()) + $soigne);
             $_SESSION['guerrier']->setMana($_SESSION['guerrier']->getMana() - $soigne);
             if ($_SESSION['guerrier']->getMana() < 0) {
@@ -163,6 +163,12 @@ function combat() {
         $aleaMANA = rand(10, 100);
         if (($_SESSION['guerrier']->getMana() + $aleaMANA) < 500) {
             $_SESSION['guerrier']->setMana($_SESSION['guerrier']->getMana() + $aleaMANA);
+            $_POST['couleurMANAGuerrier'] = "success";
+            $_SESSION['guerrierMANA'] = $_SESSION['guerrier']->getMana();
+        } else if ($_SESSION['guerrier']->getMana() == 500) {
+            $_SESSION['guerrier']->setMana(500);
+        } else {
+            $_SESSION['guerrier']->setMana(500);
             $_POST['couleurMANAGuerrier'] = "success";
             $_SESSION['guerrierMANA'] = $_SESSION['guerrier']->getMana();
         }
@@ -211,6 +217,12 @@ function combat() {
         $aleaMANA = rand(10, 100);
         if (($_SESSION['orc']->getMana() + $aleaMANA) < 200) {
             $_SESSION['orc']->setMana($_SESSION['orc']->getMana() + $aleaMANA);
+            $_POST['couleurMANAOrc'] = "success";
+            $_SESSION['orcMANA'] = $_SESSION['orc']->getMana();
+        } else if ($_SESSION['orc']->getMana() == 200) {
+            $_SESSION['orc']->setMana(200);
+        } else {
+            $_SESSION['orc']->setMana(200);
             $_POST['couleurMANAOrc'] = "success";
             $_SESSION['orcMANA'] = $_SESSION['orc']->getMana();
         }
