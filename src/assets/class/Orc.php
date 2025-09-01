@@ -42,8 +42,8 @@ class Orc extends Character
 
     public function useMagic() {
         $attaque = rand($this->getDamageMin(), $this->getDamageMax());
-        $attaque = $attaque*2;
-        $this->setMana($this->getMana() - 150);
+        $attaque = intval($attaque * 2.25);
+        $this->setMana($this->getMana() - 200);
         if ($this->getMana() < 0) {
             $this->setMana(0);
         }

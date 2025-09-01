@@ -5,7 +5,7 @@ require_once'assets/class/Orc.php';
 
 session_start();
 
-
+$btnParis = true;
 
 //APPELLE TOUTE LES FONCTION
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -13,7 +13,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if(isset($_POST['creationGuerrier'])) {
         creationGuerrier();
     }
-
     
     if(isset($_POST['creationOrc'])) {
         creationOrc();
@@ -29,6 +28,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if(isset($_POST['nouvellePartie'])) {
         nouvellePartie();
+    }
+
+    if(!isset($_COOKIE['monnaie'])){
+        if (empty($_COOKIE['monnaie'])) {
+            // ResetMonnaie();
+        }
+    }
+
+    if(isset($_POST['parieGuerrier'])) {
+        parieGuerrier();
+    }   
+
+    if(isset($_POST['ResetMonnaie'])) {
+        ResetMonnaie();
     }
     
 }
@@ -58,6 +71,7 @@ if(empty($_SESSION['guerrier']) || empty($_SESSION['orc']) || empty($_SESSION['c
     $btnCombat = false;
 } else {
     $btnCombat = true;
+    $btnParis = false;
 }
 
 
@@ -70,9 +84,47 @@ function nouvellePartie() {
 
 
 
+function ResetMonnaie() {
+    setcookie('monnaie', 200);
+}
+
+
+
+function parieGuerrier() {
+    if ($_POST['montantPariGuerrier'] > $_COOKIE['monnaie']) {
+        $_SESSION["parisGuerrierErreur"] = "Vous n'avez pas assez de monnaie pour ce pari.";
+    }  else if ($_POST['montantPariGuerrier'] <= 0 ) {
+        $_SESSION["parisGuerrierErreur"] = "Veuillez entrer une valeur supérieur à zéro.";
+    } else {
+        $_SESSION["parisGuerrierMonaie"] = $_POST['montantPariGuerrier'];
+        $_SESSION['montantPariGuerrier'] = $_POST['montantPariGuerrier'];
+        $_SESSION['parisGuerrier'] = true;
+        $monnaie = $_COOKIE['monnaie'] - $_POST['montantPariGuerrier'];
+        setcookie('monnaie', $monnaie);
+        $_SESSION["parisGuerrierErreur"] = "Paris rentrer !";
+    }
+}
+
+function parieOrc() {
+    if ($_POST['montantParisOrc'] > $_COOKIE['monnaie']) {
+        $_SESSION["parisOrcErreur"] = "Vous n'avez pas assez de monnaie pour ce pari.";
+    }  else if ($_POST['montantParisOrc'] <= 0 ) {
+        $_SESSION["parisOrcErreur"] = "Veuillez entrer une valeur supérieur à zéro.";
+    } else {
+        $_SESSION["parisOrcMonaie"] = $_POST['montantParisOrc'];
+        $_SESSION['montantParisOrc'] = $_POST['montantParisOrc'];
+        $_SESSION['parisOrc'] = true;
+        $monnaie = $_COOKIE['monnaie'] - $_POST['montantParisOrc'];
+        setcookie('monnaie', $monnaie);
+        $_SESSION["parisOrcErreur"] = "Paris rentrer !";
+    }
+}
+
+
+
 //CREATION DE PERSO
 function creationGuerrier() {
-    $guerrier = new Guerrier(2000, 500, "Hallebarde", 250, "Bouclier", 150);
+    $guerrier = new Guerrier(1600, 400, "Hallebarde", 200, "Bouclier", 150);
     $_SESSION['guerrier'] = $guerrier;
     $_SESSION['guerrierPV'] = $guerrier->getHealth();
     $_SESSION['guerrierMANA'] = $guerrier->getMana();
@@ -85,7 +137,7 @@ function creationGuerrier() {
 }
 
 function creationOrc() {
-    $orc = new Orc(1500, 200, 100, 400);
+    $orc = new Orc(1400, 300, 100, 500);
     $_SESSION['orc'] = $orc;
     $_SESSION['orcPV'] = $orc->getHealth();
     $_SESSION['orcMANA'] = $orc->getMana();
@@ -104,6 +156,7 @@ function commence() {
     while ($commence !== true) {
         $commenceGuerrier = rand(1,6);
         $commenceOrc = rand(1,6);
+        $btnParis = false;
         if ($commenceGuerrier > $commenceOrc) {
             $_SESSION['commence'] = "guerrier";
             $_POST['action'] = "<b>Le guerrier commence le combat !</b>";
@@ -128,11 +181,20 @@ function combat() {
 
             $_POST['action'] =  "<b>VICTOIRE DU GUERRIER</b>";
             $_SESSION['orcIMG'] = "assets/img/orcMort.png";
+            if (isset($_SESSION['parisGuerrier']) && $_SESSION['parisGuerrier'] == true) {
+                $monnaie = ($_SESSION['montantPariGuerrier']*2) + $_COOKIE['monnaie'];
+                setcookie('monnaie', $monnaie);
+            }
 
         } else if ($_SESSION['guerrier']->getHealth() <= 0) { //Si l'orc gagne
 
             $_POST['action'] =  "<b>VICTOIRE DE L'ORC</b>";
             $_SESSION['guerrierIMG'] = "assets/img/guerrierMort.png";
+
+            if (isset($_SESSION['parisOrc']) && $_SESSION['parisOrc'] == true) {
+                $monnaie = ($_SESSION['montantParisOrc']*2) + $_COOKIE['monnaie'];
+                setcookie('monnaie', $monnaie);
+            }
 
         }
 
@@ -160,7 +222,7 @@ function combat() {
         // Le guerrier attaque
         $degat = $_SESSION['guerrier']->attack();
         $_POST['action'] =  "<b>Le guerrier attaque et inflige " . $degat . " de dégat !</b>";
-        $aleaMANA = rand(10, 100);
+        $aleaMANA = rand(10, 60);
         if (($_SESSION['guerrier']->getMana() + $aleaMANA) < 500) {
             $_SESSION['guerrier']->setMana($_SESSION['guerrier']->getMana() + $aleaMANA);
             $_POST['couleurMANAGuerrier'] = "success";
@@ -198,7 +260,7 @@ function combat() {
 
         $alea = rand(1, 2);
         $_SESSION['guerrierIMG'] = "assets/img/guerrier.png";
-        if ($alea == 2 && ($_SESSION['orc']->getMana() > 150)) {
+        if ($alea == 2 && ($_SESSION['orc']->getMana() > 200)) {
 
             $degat = $_SESSION['orc']->useMagic();
             $_SESSION['orcIMG'] = "assets/img/orcFORT.png";
@@ -214,15 +276,15 @@ function combat() {
         $degat = $_SESSION['orc']->attack();
         $_SESSION['degatOrc'] = $degat;
         $_POST['action'] =  "<b>L'orc attaque et inflige " . $degat . " de dégat !</b>";
-        $aleaMANA = rand(10, 100);
-        if (($_SESSION['orc']->getMana() + $aleaMANA) < 200) {
+        $aleaMANA = rand(10, 60);
+        if (($_SESSION['orc']->getMana() + $aleaMANA) < 300) {
             $_SESSION['orc']->setMana($_SESSION['orc']->getMana() + $aleaMANA);
             $_POST['couleurMANAOrc'] = "success";
             $_SESSION['orcMANA'] = $_SESSION['orc']->getMana();
-        } else if ($_SESSION['orc']->getMana() == 200) {
-            $_SESSION['orc']->setMana(200);
+        } else if ($_SESSION['orc']->getMana() == 300) {
+            $_SESSION['orc']->setMana(300);
         } else {
-            $_SESSION['orc']->setMana(200);
+            $_SESSION['orc']->setMana(300);
             $_POST['couleurMANAOrc'] = "success";
             $_SESSION['orcMANA'] = $_SESSION['orc']->getMana();
         }
@@ -272,17 +334,34 @@ function combat() {
 
 <body class="texte">
 
-    <h1 class="text-center">Guerrier VS Orc</h1>
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-10">
+                <h1 class="text-start">Guerrier VS Orc</h1>
+            </div>
+            <div class="col-1 d-flex align-items-center">
+                <form method="post">
+                    <button type="submit" class="btn btn-primary mx-3" value="ResetMonnaie"
+                        name="ResetMonnaie">Reset</button>
+                </form>
+                <p class="mt-3"><?= $_COOKIE['monnaie'] ?? 0 ?></p>
+                <img src="assets/img/monnaie.png" alt="Sousous" class="monnais">
+            </div>
+        </div>
+    </div>
+
 
     <!-- Terrain et bouton -->
     <div class="container text-center">
         <div class="row border cadre mb-2">
             <div class="row terrain">
                 <div class="col">
-                    <img src="<?= $_SESSION['guerrierIMG'] ?? "assets/img/PasEncoreLa.png" ?>" alt="Jolie guerrier" class="perso">
+                    <img src="<?= $_SESSION['guerrierIMG'] ?? "assets/img/PasEncoreLa.png" ?>" alt="Jolie guerrier"
+                        class="perso">
                 </div>
                 <div class="col">
-                    <img src="<?= $_SESSION['orcIMG'] ?? "assets/img/PasEncoreLa.png" ?>" alt="Méchant et pas bo orc" class="perso">
+                    <img src="<?= $_SESSION['orcIMG'] ?? "assets/img/PasEncoreLa.png" ?>" alt="Méchant et pas bo orc"
+                        class="perso">
                 </div>
             </div>
             <div class="row">
@@ -293,7 +372,8 @@ function combat() {
                 </div>
                 <div class="col-1 d-flex">
                     <img src="assets/img/mana.png" alt="mana" class="logo">
-                    <p class="text-<?= $_POST['couleurMANAGuerrier'] ?? "light"?>"> <?= $_SESSION['guerrierMANA'] ?? ""?> </p>
+                    <p class="text-<?= $_POST['couleurMANAGuerrier'] ?? "light"?>">
+                        <?= $_SESSION['guerrierMANA'] ?? ""?> </p>
                 </div>
                 <div class="col-1 d-flex">
                     <img src="assets/img/arme.png" alt="force" class="logo">
@@ -353,12 +433,46 @@ function combat() {
     </div>
 
 
-    <!-- Bouton nouvelle partie -->
-    <div class="text-center mt-2">
-        <form method="post">
-            <button type="submit" class="btn btn-primary" value="nouvellePartie" name="nouvellePartie">Nouveau
-                jeu</button>
-        </form>
+
+    <div class="container text-center mt-2">
+        <div class="row">
+            <div class="col">
+                <form action="" method="post">
+                    <span
+                        class="ms-2 text-danger fst-italic fw-light"><?= $_SESSION["parisGuerrierErreur"] ?? '' ?></span>
+                    <input type="number" class="w-25" name="montantPariGuerrier"
+                        value="<?= $_SESSION["parisGuerrierMonaie"] ?? "" ?>">
+                    <?php if ($btnParis !== false) { ?>
+                    <button type="submit" class="btn btn-primary" value="parieGuerrier" name="parieGuerrier">
+                        PARIE !
+                    </button>
+                    <?php } ?>
+                </form>
+            </div>
+            <div class="col">
+                <!-- Bouton nouvelle partie -->
+                <div class="text-center mt-2">
+                    <form method="post">
+                        <button type="submit" class="btn btn-primary" value="nouvellePartie"
+                            name="nouvellePartie">Nouveau
+                            jeu</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col">
+                <form action="" method="post">
+                    <span
+                        class="ms-2 text-danger fst-italic fw-light"><?= $_SESSION["parisOrcErreur"] ?? '' ?></span>
+                    <input type="number" class="w-25" name="montantParisOrc"
+                        value="<?= $_SESSION["parisOrcMonaie"] ?? "" ?>">
+                    <?php if ($btnParis !== false) { ?>
+                    <button type="submit" class="btn btn-primary" value="parieOrc" name="parieOrc">
+                        PARIE !
+                    </button>
+                    <?php } ?>
+                </form>
+            </div>
+        </div>
     </div>
 
 
