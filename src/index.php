@@ -38,12 +38,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if(isset($_POST['parieGuerrier'])) {
         parieGuerrier();
-    }   
+    } 
+    
+    if(isset($_POST['parieOrc'])) {
+        parieOrc();
+    }
 
     if(isset($_POST['ResetMonnaie'])) {
         ResetMonnaie();
     }
-    
+
+    if (empty($_COOKIE['numCombat'])) {
+       setcookie('numCombat', 1);
+    }
+
 }
 
 
@@ -179,16 +187,42 @@ function combat() {
 
         if($_SESSION['orc']->getHealth() <= 0) { //Si le guerrier gagne
 
+            $btnCombat = false;
             $_POST['action'] =  "<b>VICTOIRE DU GUERRIER</b>";
+            $_POST['victoire'] =  "VICTOIRE DU GUERRIER";
+            setcookie('numCombat', $_COOKIE['numCombat'] + 1);
+            // Ajout de l'historique dans un cookie (en JSON)
+            $historique = [];
+            if (isset($_COOKIE['historique'])) {
+                $historique = json_decode($_COOKIE['historique'], true);
+                if (!is_array($historique)) {
+                    $historique = [];
+                }
+            }
+            $historique[] = "Combat numéro " . $_COOKIE['numCombat'] . " : " . $_POST['victoire'];
+            setcookie('historique', json_encode($historique));
             $_SESSION['orcIMG'] = "assets/img/orcMort.png";
-            if (isset($_SESSION['parisGuerrier']) && $_SESSION['parisGuerrier'] == true) {
+            if (isset($_SESSION['parisGuerrier']) && $_SESSION['parisGuerrier'] == true && isset($_COOKIE['monnaie'])) {
                 $monnaie = ($_SESSION['montantPariGuerrier']*2) + $_COOKIE['monnaie'];
                 setcookie('monnaie', $monnaie);
             }
 
         } else if ($_SESSION['guerrier']->getHealth() <= 0) { //Si l'orc gagne
 
+            $btnCombat = false;
             $_POST['action'] =  "<b>VICTOIRE DE L'ORC</b>";
+            $_POST['victoire'] =  "VICTOIRE DE L'ORC";
+            setcookie('numCombat', $_COOKIE['numCombat'] + 1);
+            // Ajout de l'historique dans un cookie (en JSON)
+            $historique = [];
+            if (isset($_COOKIE['historique'])) {
+                $historique = json_decode($_COOKIE['historique'], true);
+                if (!is_array($historique)) {
+                    $historique = [];
+                }
+            }
+            $historique[] = "Combat numéro " . $_COOKIE['numCombat'] . " : " . $_POST['victoire'];
+            setcookie('historique', json_encode($historique));
             $_SESSION['guerrierIMG'] = "assets/img/guerrierMort.png";
 
             if (isset($_SESSION['parisOrc']) && $_SESSION['parisOrc'] == true) {
@@ -461,8 +495,7 @@ function combat() {
             </div>
             <div class="col">
                 <form action="" method="post">
-                    <span
-                        class="ms-2 text-danger fst-italic fw-light"><?= $_SESSION["parisOrcErreur"] ?? '' ?></span>
+                    <span class="ms-2 text-danger fst-italic fw-light"><?= $_SESSION["parisOrcErreur"] ?? '' ?></span>
                     <input type="number" class="w-25" name="montantParisOrc"
                         value="<?= $_SESSION["parisOrcMonaie"] ?? "" ?>">
                     <?php if ($btnParis !== false) { ?>
@@ -486,6 +519,22 @@ function combat() {
     </div>
     <?php } ?>
 
+    <hr class="w-50 mx-auto">
+
+    <div>
+        <?php
+        if (isset($_COOKIE['historique'])) {
+            $historique = json_decode($_COOKIE['historique'], true);
+            if (is_array($historique)) {
+            $reversed = array_reverse($historique);
+            foreach ($reversed as $action) { ?>
+        <p class="text-center"><?= htmlspecialchars($action) ?></p>
+        <hr class="w-25 mx-auto">
+        <?php   }
+            }
+        }
+        ?>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous">
