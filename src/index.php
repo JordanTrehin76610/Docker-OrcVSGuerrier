@@ -223,14 +223,14 @@ function combat() {
         $degat = $_SESSION['guerrier']->attack();
         $_POST['action'] =  "<b>Le guerrier attaque et inflige " . $degat . " de dégat !</b>";
         $aleaMANA = rand(10, 60);
-        if (($_SESSION['guerrier']->getMana() + $aleaMANA) < 500) {
+        if (($_SESSION['guerrier']->getMana() + $aleaMANA) < 400) {
             $_SESSION['guerrier']->setMana($_SESSION['guerrier']->getMana() + $aleaMANA);
             $_POST['couleurMANAGuerrier'] = "success";
             $_SESSION['guerrierMANA'] = $_SESSION['guerrier']->getMana();
-        } else if ($_SESSION['guerrier']->getMana() == 500) {
-            $_SESSION['guerrier']->setMana(500);
+        } else if ($_SESSION['guerrier']->getMana() == 400) {
+            $_SESSION['guerrier']->setMana(400);
         } else {
-            $_SESSION['guerrier']->setMana(500);
+            $_SESSION['guerrier']->setMana(400);
             $_POST['couleurMANAGuerrier'] = "success";
             $_SESSION['guerrierMANA'] = $_SESSION['guerrier']->getMana();
         }
